@@ -1,0 +1,32 @@
+{
+  "name": "formhelper-peer-iframe",
+  "version": "1.0.0",
+  "description": "Formhelper addon for multi-domain form submissions",
+  "main": "src/parent.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/l2interactive/formhelper-peer-iframe.git"
+  },
+  "keywords": [
+    "forms",
+    "html",
+    "ajax",
+    "json"
+  ],
+  "author": "L2 Interactive",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/l2interactive/formhelper-peer-iframe/issues"
+  },
+  "homepage": "https://github.com/l2interactive/formhelper-peer-iframe#readme",
+  "dependencies": {
+    "cookies-js": "^1.2.3",
+    "formhelper": "^1.0.0",
+    "jquery": ">1.11.1",
+    "jquery-serializejson": "^2.7.2",
+    "porthole-clone": "0.0.1"
+  }
+}
