@@ -263,7 +263,7 @@ function connect$2() {
     $body = $$1('body');
 
     var rule = {
-      form: form,
+      form: config.form,
       xhrSuccess: function xhrSuccess() {
         formHelperRequest = this;
 
