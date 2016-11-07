@@ -1,114 +1,123 @@
-(function(formHelper, Porthole, $) {
+import 'jquery';
+import formHelper from 'formhelper';
+import Porthole from 'porthole';
 
-	if (!formHelper) { throw new Error('formhelper peer iframe requires formHelper'); }
-	if (!Porthole)   { throw new Error('formhelper peer iframe requires Porthole.js'); }
+const $ = jQuery;
 
-	var porthole;
-	var formHelperRequest = null;
-	var readyHasBeenAcknowledged = false;
+function connect(config = {}) {
 
-	function resizeFrame() {
-		var bodyHeight = $('body').height();
-		porthole.post({event: 'fh-ipeer-child-resize', bodyHeight: bodyHeight});
-	}
+  config = $.extend({
+    form: '#formhelper-peer-iframe--iframe-form'
+  }, config);
 
-	function repeatReadyUntilAcknowledged(afterAckFunction, repeatDelay) {
-		if (!readyHasBeenAcknowledged) {
+  const $form = $(config.form);
 
-			porthole.post({event: 'fh-ipeer-ready'});
-			setTimeout(function() {
-				repeatReadyUntilAcknowledged(afterAckFunction, repeatDelay)
-			}, repeatDelay);
+  if ($form.length !== 1) return;
 
-		} else {
-			if (afterAckFunction) {
-				afterAckFunction();
-			}
-		}
-	}
+  if (!config.peerProxyUrl) {
+    throw new Error('Missing `peerProxyUrl` in formhelper-peer-iframe/iframe.js');
+  }
 
-	var rule = {
-		form: 'form',
-		xhrSuccess: function() {
-			formHelperRequest = this;
+  let porthole = null;
+  let formHelperRequest = null;
+  let ready = false;
+  const $body = $('body');
 
-			porthole.post({event: 'fh-ipeer-child-response-received', responseData: {
-				data:   this.data,
-				errors: this.errors,
-				status: this.status
-			}});
+  function resizeFrame() {
+    const bodyHeight = $body.height();
+    porthole.post({event: 'fh-ipeer-child-resize', bodyHeight});
+  }
 
-		},
-		onComplete: function() {
-			resizeFrame();
-		},
-		customSubmitHandler: function() {
-			porthole.post({event: 'fh-ipeer-child-submit'});
-		},
-		releaseFormAndUpdateUIOnXHRSuccess: false
-	};
+  function checkReady(cb) {
+    if (ready) {
+      if (cb) { cb(); }
+    } else {
+      porthole.post({event: 'fh-ipeer-ready'});
+      window.setTimeout(_ => {
+        checkReady(cb)
+      }, 100);
+    }
+  }
 
-	formHelper.addRule(rule);
+  var rule = {
+    form,
+    xhrSuccess() {
+      formHelperRequest = this;
 
+      porthole.post({event: 'fh-ipeer-child-response-received', responseData: {
+        data:   this.data,
+        errors: this.errors,
+        status: this.status
+      }});
 
-	var handleParentMessage = function(messageEvent) {
+    },
+    onComplete() {
+      resizeFrame();
+    },
+    customSubmitHandler() {
+      porthole.post({event: 'fh-ipeer-child-submit'});
+    },
+    releaseFormAndUpdateUIOnXHRSuccess: false
+  };
 
-		var data = messageEvent.data;
-
-		switch (data.event) {
-
-			case 'fh-ipeer-parent-submit':
-				formHelperRequest = new formHelper.FormHelperRequest($('form'), rule);
-				break;
-
-			case 'fh-ipeer-parent-response-received':
-				if (data.status !== 'SUCCESS') {
-					formHelperRequest.releaseForm();
-				}
-				formHelperRequest.updateUI();
-				resizeFrame();
-				break;
-
-			case 'fh-ipeer-ready':
-				porthole.post({event: 'fh-ipeer-ready-ack'});
-				break;
-
-			case 'fh-ipeer-ready-ack':
-				readyHasBeenAcknowledged = true;
-				break;
-
-			case 'fh-ipeer-custom-event':
-				if (formHelper.always) {
-					if(formHelper.always.onIframeCustomEvent) {
-						formHelper.always.onIframeCustomEvent(data.data);
-					}
-				}
-				break;
-		}
-	};
+  formHelper.addRule(rule);
 
 
-	$(function($) {
+  function handleParentMessage(messageEvent) {
 
-		if (!formHelper.iPeerHostname) {
-			throw new Error('formhelper peer iframe requires formHelper.iPeerHostname to be set');
-		}
+    const data = messageEvent.data;
 
-		porthole = new Porthole.WindowProxy('https://' + formHelper.iPeerHostname + '/formhelper/porthole/proxy.html');
+    switch (data.event) {
 
-		formHelper.portholeSendFHIPeerCustomEvent = function(data) {
-			porthole.post({event: 'fh-ipeer-custom-event', data: data});
-		};
+      case 'fh-ipeer-parent-submit':
+        formHelperRequest = new formHelper.FormHelperRequest($form, rule);
+        break;
 
-		porthole.addEventListener(handleParentMessage);
+      case 'fh-ipeer-parent-response-received':
+        if (data.status !== 'SUCCESS') {
+          formHelperRequest.releaseForm();
+        }
+        formHelperRequest.updateUI();
+        resizeFrame();
+        break;
 
-		setTimeout(function() {
-			repeatReadyUntilAcknowledged(function() {
-				resizeFrame();
-				$(window).resize(resizeFrame);
-			}, 100)
-		}, 0);
+      case 'fh-ipeer-ready':
+        porthole.post({event: 'fh-ipeer-ready-ack'});
+        break;
 
-	});
+      case 'fh-ipeer-ready-ack':
+        ready = true;
+        break;
 
-})(window.formHelper, window.Porthole, jQuery);
+      case 'fh-ipeer-custom-event':
+        if (formHelper.always) {
+          if(formHelper.always.onIframeCustomEvent) {
+            formHelper.always.onIframeCustomEvent(data.data);
+          }
+        }
+        break;
+    }
+  };
+
+
+  $(_ => {
+
+    porthole = new Porthole.WindowProxy(peerProxyUrl);
+
+    formHelper.portholeSendFHIPeerCustomEvent = function(data) {
+      porthole.post({event: 'fh-ipeer-custom-event', data: data});
+    };
+
+    porthole.addEventListener(handleParentMessage);
+
+    window.setTimeout(_ => {
+      checkReady(_ => {
+        resizeFrame();
+        $(window).resize(resizeFrame);
+      }, 100)
+    }, 0);
+
+  });
+}
+
+export { connect };
