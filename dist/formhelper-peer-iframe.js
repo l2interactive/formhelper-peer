@@ -95,7 +95,7 @@ function FormHelperPeerRequest(formEl, rule, submitEvent) {
   this.iframeResponse = null;
 
   this.peerSubmitCompleteHandler = $.proxy(this.peerSubmitCompleteHandler, this);
-  this.rule.porthole.addEventListener(this.peerSubmitCompleteHandler);
+  rule.porthole.addEventListener(this.peerSubmitCompleteHandler);
 
   this.initialize(formEl, rule, submitEvent);
 }
