@@ -1,6 +1,6 @@
 {
   "name": "formhelper-peer-iframe",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Formhelper addon for multi-domain form submissions",
   "main": "dist/formhelper-peer-iframe.js",
   "module": "dist/formhelper-peer-iframe.mjs",
