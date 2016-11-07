@@ -10,10 +10,6 @@ function connect(config = {}) {
     form: '#formhelper-peer-iframe--iframe-form'
   }, config);
 
-  const $form = $(config.form);
-
-  if ($form.length !== 1) return;
-
   if (!config.peerProxyUrl) {
     throw new Error('Missing `peerProxyUrl` in formhelper-peer-iframe/iframe.js');
   }
@@ -21,7 +17,7 @@ function connect(config = {}) {
   let porthole = null;
   let formHelperRequest = null;
   let ready = false;
-  const $body = $('body');
+  let $body = null;
 
   function resizeFrame() {
     const bodyHeight = $body.height();
@@ -38,30 +34,6 @@ function connect(config = {}) {
       }, 100);
     }
   }
-
-  var rule = {
-    form,
-    xhrSuccess() {
-      formHelperRequest = this;
-
-      porthole.post({event: 'fh-ipeer-child-response-received', responseData: {
-        data:   this.data,
-        errors: this.errors,
-        status: this.status
-      }});
-
-    },
-    onComplete() {
-      resizeFrame();
-    },
-    customSubmitHandler() {
-      porthole.post({event: 'fh-ipeer-child-submit'});
-    },
-    releaseFormAndUpdateUIOnXHRSuccess: false
-  };
-
-  formHelper.addRule(rule);
-
 
   function handleParentMessage(messageEvent) {
 
@@ -101,6 +73,35 @@ function connect(config = {}) {
 
 
   $(_ => {
+
+    const $form = $(config.form);
+
+    if ($form.length !== 1) return;
+
+    $body = $('body');
+
+    var rule = {
+      form,
+      xhrSuccess() {
+        formHelperRequest = this;
+
+        porthole.post({event: 'fh-ipeer-child-response-received', responseData: {
+          data:   this.data,
+          errors: this.errors,
+          status: this.status
+        }});
+
+      },
+      onComplete() {
+        resizeFrame();
+      },
+      customSubmitHandler() {
+        porthole.post({event: 'fh-ipeer-child-submit'});
+      },
+      releaseFormAndUpdateUIOnXHRSuccess: false
+    };
+
+    formHelper.addRule(rule);
 
     porthole = new Porthole.WindowProxy(peerProxyUrl);
 

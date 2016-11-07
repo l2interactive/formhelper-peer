@@ -7,31 +7,16 @@ var $ = jQuery;
 
 function connect$1(rule) {
 
+  var porthole = null;
+
   rule = jQuery.extend({
     form: '#formhelper-peer-iframe--parent-form',
     frame: '#formhelper-peer-iframe--iframe'
   }, rule);
 
-  var $form = $(rule.form);
-  var $frame = $(rule.frame);
-
-  if ($form.length !== 1 || $frame.length !== 1) return;
-
-  var frameName = $frame.attr('name');
-
-  if (!frameName) {
-    throw new Error('Missing iframe `name` attribute in formhelper-peer-iframe/parent.js');
-  }
   if (!rule.peerProxyUrl) {
     throw new Error('Missing `peerProxyUrl` in formhelper-peer-iframe/parent.js');
   }
-
-  rule.requestController = FormHelperPeerRequest;
-  rule.readyHasBeenAcknowledged = false;
-
-  var porthole = null;
-
-  formHelper.addRule(rule);
 
   function checkReady() {
     if (!rule.readyHasBeenAcknowledged) {
@@ -41,6 +26,22 @@ function connect$1(rule) {
   }
 
   $(function () {
+
+    var $form = $(rule.form);
+    var $frame = $(rule.frame);
+
+    if ($form.length !== 1 || $frame.length !== 1) return;
+
+    var frameName = $frame.attr('name');
+
+    if (!frameName) {
+      throw new Error('Missing iframe `name` attribute in formhelper-peer-iframe/parent.js');
+    }
+
+    rule.requestController = FormHelperPeerRequest;
+    rule.readyHasBeenAcknowledged = false;
+
+    formHelper.addRule(rule);
 
     porthole = new Porthole.WindowProxy(rule.peerProxyUrl, frameName);
 
@@ -185,10 +186,6 @@ function connect$2() {
     form: '#formhelper-peer-iframe--iframe-form'
   }, config);
 
-  var $form = $$1(config.form);
-
-  if ($form.length !== 1) return;
-
   if (!config.peerProxyUrl) {
     throw new Error('Missing `peerProxyUrl` in formhelper-peer-iframe/iframe.js');
   }
@@ -196,7 +193,7 @@ function connect$2() {
   var porthole = null;
   var formHelperRequest = null;
   var ready = false;
-  var $body = $$1('body');
+  var $body = null;
 
   function resizeFrame() {
     var bodyHeight = $body.height();
@@ -215,29 +212,6 @@ function connect$2() {
       }, 100);
     }
   }
-
-  var rule = {
-    form: form,
-    xhrSuccess: function xhrSuccess() {
-      formHelperRequest = this;
-
-      porthole.post({ event: 'fh-ipeer-child-response-received', responseData: {
-          data: this.data,
-          errors: this.errors,
-          status: this.status
-        } });
-    },
-    onComplete: function onComplete() {
-      resizeFrame();
-    },
-    customSubmitHandler: function customSubmitHandler() {
-      porthole.post({ event: 'fh-ipeer-child-submit' });
-    },
-
-    releaseFormAndUpdateUIOnXHRSuccess: false
-  };
-
-  formHelper.addRule(rule);
 
   function handleParentMessage(messageEvent) {
 
@@ -276,6 +250,35 @@ function connect$2() {
   }
 
   $$1(function (_) {
+
+    var $form = $$1(config.form);
+
+    if ($form.length !== 1) return;
+
+    $body = $$1('body');
+
+    var rule = {
+      form: form,
+      xhrSuccess: function xhrSuccess() {
+        formHelperRequest = this;
+
+        porthole.post({ event: 'fh-ipeer-child-response-received', responseData: {
+            data: this.data,
+            errors: this.errors,
+            status: this.status
+          } });
+      },
+      onComplete: function onComplete() {
+        resizeFrame();
+      },
+      customSubmitHandler: function customSubmitHandler() {
+        porthole.post({ event: 'fh-ipeer-child-submit' });
+      },
+
+      releaseFormAndUpdateUIOnXHRSuccess: false
+    };
+
+    formHelper.addRule(rule);
 
     porthole = new Porthole.WindowProxy(peerProxyUrl);
 

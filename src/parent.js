@@ -7,28 +7,14 @@ const $ = jQuery;
 
 function connect(rule) {
 
+  let porthole = null;
+
   rule = jQuery.extend({
     form: '#formhelper-peer-iframe--parent-form',
     frame: '#formhelper-peer-iframe--iframe'
   }, rule);
 
-  const $form = $(rule.form);
-  const $frame = $(rule.frame);
-
-  if ($form.length !== 1 || $frame.length !== 1) return;
-
-  const frameName = $frame.attr('name');
-
-  if (!frameName)         { throw new Error('Missing iframe `name` attribute in formhelper-peer-iframe/parent.js'); }
   if (!rule.peerProxyUrl) { throw new Error('Missing `peerProxyUrl` in formhelper-peer-iframe/parent.js'); }
-
-  rule.requestController = FormHelperPeerRequest
-  rule.readyHasBeenAcknowledged = false;
-
-  let porthole = null;
-
-  formHelper.addRule(rule);
-
 
   function checkReady() {
     if (!rule.readyHasBeenAcknowledged) {
@@ -38,6 +24,20 @@ function connect(rule) {
   }
 
   $(function() {
+
+    const $form = $(rule.form);
+    const $frame = $(rule.frame);
+
+    if ($form.length !== 1 || $frame.length !== 1) return;
+
+    const frameName = $frame.attr('name');
+
+    if (!frameName) { throw new Error('Missing iframe `name` attribute in formhelper-peer-iframe/parent.js'); }
+
+    rule.requestController = FormHelperPeerRequest
+    rule.readyHasBeenAcknowledged = false;
+
+    formHelper.addRule(rule);
 
     porthole = new Porthole.WindowProxy(rule.peerProxyUrl, frameName);
 
