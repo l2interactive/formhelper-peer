@@ -18,6 +18,7 @@ function connect(config = {}) {
   let formHelperRequest = null;
   let ready = false;
   let $body = null;
+  let $form = null;
 
   function resizeFrame() {
     const bodyHeight = $body.height();
@@ -42,7 +43,7 @@ function connect(config = {}) {
     switch (data.event) {
 
       case 'fh-ipeer-parent-submit':
-        formHelperRequest = new formHelper.FormHelperRequest($form, rule);
+        formHelperRequest = new formHelper.FormHelperRequest(this.$form, rule);
         break;
 
       case 'fh-ipeer-parent-response-received':
@@ -77,7 +78,7 @@ function connect(config = {}) {
     const form = config.form;
     const peerProxyUrl = config.peerProxyUrl;
 
-    const $form = $(form);
+    $form = $(form);
 
     if ($form.length !== 1) return;
 
