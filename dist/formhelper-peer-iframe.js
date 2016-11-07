@@ -1,16 +1,33 @@
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('jquery'), require('formhelper'), require('cookies-js'), require('porthole')) :
-  typeof define === 'function' && define.amd ? define(['exports', 'jquery', 'formhelper', 'cookies-js', 'porthole'], factory) :
-  (factory((global.formhelper-peer-iframe = global.formhelper-peer-iframe || {}),global.jQuery,global.formHelper,global.Cookies,global.Porthole));
-}(this, (function (exports,jquery,formHelper,Cookies,Porthole) { 'use strict';
+  typeof define === 'function' && define.amd ? define('formhelper-peer-iframe', ['exports', 'jquery', 'formhelper', 'cookies-js', 'porthole'], factory) :
+  (factory((global.formHelper = global.formHelper || {}, global.formHelper.peerIframe = global.formHelper.peerIframe || {}),global.jQuery,global.formHelper,global.Cookies,global.Porthole));
+}(this, (function (exports,jQuery,formHelper,Cookies,Porthole) { 'use strict';
 
+jQuery = 'default' in jQuery ? jQuery['default'] : jQuery;
 formHelper = 'default' in formHelper ? formHelper['default'] : formHelper;
 Cookies = 'default' in Cookies ? Cookies['default'] : Cookies;
 Porthole = 'default' in Porthole ? Porthole['default'] : Porthole;
 
 var $ = jQuery;
 
-function connect$1(rule) {
+/**
+ * rule –
+ *   Standard formRule with a few extra properties:
+ *   
+ *     form
+ *       Default: #formhelper-peer-iframe--parent-form
+ *
+ *     frame
+ *       Default: #formhelper-peer-iframe--iframe'
+ *       iframe selector (override as needed)
+ *
+ *     peerProxyUrl
+ *       Required. URL to proxy html file on the *child* domain.
+ *       Example: http://child-domain.com/js/porthole/proxy.html
+ */
+
+function connect(rule) {
 
   rule = jQuery.extend({
     form: '#formhelper-peer-iframe--parent-form',
@@ -183,7 +200,20 @@ $.extend(FormHelperPeerRequest.prototype, {
 
 var $$1 = jQuery;
 
-function connect$2() {
+/**
+ * config –
+ *   Not a full formRule but the following two properties:
+ * 
+ *     form
+ *       Child iframe form's selector (override as needed)
+ *       Default: #formhelper-peer-iframe--iframe-form
+ *   
+ *     peerProxyUrl
+ *       Required. URL to proxy html file on the *parent* domain.
+ *       Example: http://parent-domain.com/js/porthole/proxy.html
+ */
+
+function connect$1() {
   var config = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
 
@@ -227,7 +257,7 @@ function connect$2() {
     switch (data.event) {
 
       case 'fh-ipeer-parent-submit':
-        formHelperRequest = new formHelper.FormHelperRequest(this.$form, rule);
+        formHelperRequest = new formHelper.FormHelperRequest($form, rule);
         break;
 
       case 'fh-ipeer-parent-response-received':
@@ -307,62 +337,21 @@ function connect$2() {
   });
 }
 
-function connect$$1(formRuleParent, configIframe) {
-  connect$1(formRuleParent);
-  connect$2(configIframe);
-}
-
-
-
-/**
- * formRuleParent
- *   Standard formRule with a few extra properties:
- *   
- *     form
- *       Default: #formhelper-peer-iframe--parent-form
- *
- *     frame
- *       Default: #formhelper-peer-iframe--iframe'
- *       iframe selector (override as needed)
- *
- *     peerProxyUrl
- *       Required. URL to proxy html file on the *child* domain.
- *       Example: http://child-domain.com/js/porthole/proxy.html
- *
- * 
- * configIframe
- *   Not a full formRule but the following two properties:
- * 
- *     form
- *       Child iframe form's selector (override as needed)
- *       Default: #formhelper-peer-iframe--iframe-form
- *   
- *     peerProxyUrl
- *       Required. URL to proxy html file on the *parent* domain.
- *       Example: http://parent-domain.com/js/porthole/proxy.html
- */
-
-/**
- * Note that for now both the parent and iframe forms are only
- * registered to formhelper if the specified form is found on
- * DOMContentLoaded. This is to prevent the Porthole proxy setup
- * on pages where it's not needed.
- */
-
 /*
 Proxy template:
 
 <!DOCTYPE html>
 <html>
   <head>
-    <script src=" ... porthole.min.js"></script>
+    <script src="/js/a-script-with-porthole.js"></script>
     <script>window.onload=function() { Porthole.WindowProxyDispatcher.start(); };</script>
   </head>
   <body></body>
 </html>
 */
 
-exports.connect = connect$$1;
+exports.parent = connect;
+exports.iframe = connect$1;
 
 Object.defineProperty(exports, '__esModule', { value: true });
 

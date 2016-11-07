@@ -1,8 +1,21 @@
-import 'jquery';
+import jQuery from 'jquery';
 import formHelper from 'formhelper';
 import Porthole from 'porthole';
 
 const $ = jQuery;
+
+/**
+ * config –
+ *   Not a full formRule but the following two properties:
+ * 
+ *     form
+ *       Child iframe form's selector (override as needed)
+ *       Default: #formhelper-peer-iframe--iframe-form
+ *   
+ *     peerProxyUrl
+ *       Required. URL to proxy html file on the *parent* domain.
+ *       Example: http://parent-domain.com/js/porthole/proxy.html
+ */
 
 function connect(config = {}) {
 
@@ -44,7 +57,7 @@ function connect(config = {}) {
     switch (data.event) {
 
       case 'fh-ipeer-parent-submit':
-        formHelperRequest = new formHelper.FormHelperRequest(this.$form, rule);
+        formHelperRequest = new formHelper.FormHelperRequest($form, rule);
         break;
 
       case 'fh-ipeer-parent-response-received':

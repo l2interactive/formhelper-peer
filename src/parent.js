@@ -1,9 +1,25 @@
-import 'jquery';
+import jQuery from 'jquery';
 import formHelper from 'formhelper';
 import Cookies from 'cookies-js';
 import Porthole from 'porthole';
 
 const $ = jQuery;
+
+/**
+ * rule –
+ *   Standard formRule with a few extra properties:
+ *   
+ *     form
+ *       Default: #formhelper-peer-iframe--parent-form
+ *
+ *     frame
+ *       Default: #formhelper-peer-iframe--iframe'
+ *       iframe selector (override as needed)
+ *
+ *     peerProxyUrl
+ *       Required. URL to proxy html file on the *child* domain.
+ *       Example: http://child-domain.com/js/porthole/proxy.html
+ */
 
 function connect(rule) {
 

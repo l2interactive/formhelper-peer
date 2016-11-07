@@ -31,7 +31,7 @@
   "homepage": "https://github.com/l2interactive/formhelper-peer-iframe#readme",
   "dependencies": {
     "cookies-js": "^1.2.3",
-    "formhelper": "^1.0.0",
+    "formhelper": "^1.1.2",
     "jquery": ">1.11.1",
     "jquery-serializejson": "^2.7.2",
     "porthole": "github:ternarylabs/porthole"

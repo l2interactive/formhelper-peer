@@ -21,7 +21,8 @@ export default {
     {
       dest: pkg['main'],
       format: 'umd',
-      moduleName: 'formhelper-peer-iframe',
+      moduleName: 'formHelper.peerIframe',
+      moduleId: 'formhelper-peer-iframe',
       sourceMap: true,
       globals
     },
