@@ -74,14 +74,17 @@ function connect(config = {}) {
 
   $(_ => {
 
-    const $form = $(config.form);
+    const form = config.form;
+    const peerProxyUrl = config.peerProxyUrl;
+
+    const $form = $(form);
 
     if ($form.length !== 1) return;
 
     $body = $('body');
 
     var rule = {
-      form: config.form,
+      form,
       xhrSuccess() {
         formHelperRequest = this;
 
