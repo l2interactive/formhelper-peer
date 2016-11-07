@@ -81,7 +81,7 @@ function connect(config = {}) {
     $body = $('body');
 
     var rule = {
-      form,
+      form: config.form,
       xhrSuccess() {
         formHelperRequest = this;
 
