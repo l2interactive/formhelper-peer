@@ -7,8 +7,6 @@ var $ = jQuery;
 
 function connect$1(rule) {
 
-  var porthole = null;
-
   rule = jQuery.extend({
     form: '#formhelper-peer-iframe--parent-form',
     frame: '#formhelper-peer-iframe--iframe'
@@ -18,9 +16,11 @@ function connect$1(rule) {
     throw new Error('Missing `peerProxyUrl` in formhelper-peer-iframe/parent.js');
   }
 
+  rule.porthole = null;
+
   function checkReady() {
     if (!rule.readyHasBeenAcknowledged) {
-      porthole.post({ event: 'fh-ipeer-ready' });
+      rule.porthole.post({ event: 'fh-ipeer-ready' });
       window.setTimeout(checkReady, 100);
     }
   }
@@ -43,13 +43,13 @@ function connect$1(rule) {
 
     formHelper.addRule(rule);
 
-    porthole = new Porthole.WindowProxy(rule.peerProxyUrl, frameName);
+    rule.porthole = new Porthole.WindowProxy(rule.peerProxyUrl, frameName);
 
     formHelper.portholeSendFHIPeerCustomEvent = function (data) {
-      porthole.post({ event: 'fh-ipeer-custom-event', data: data });
+      rule.porthole.post({ event: 'fh-ipeer-custom-event', data: data });
     };
 
-    porthole.addEventListener(function (messageEvent) {
+    rule.porthole.addEventListener(function (messageEvent) {
 
       var data = messageEvent.data;
 
@@ -64,7 +64,7 @@ function connect$1(rule) {
           break;
 
         case 'fh-ipeer-ready':
-          porthole.post({ event: 'fh-ipeer-ready-ack' });
+          rule.porthole.post({ event: 'fh-ipeer-ready-ack' });
           break;
 
         case 'fh-ipeer-ready-ack':
@@ -74,7 +74,7 @@ function connect$1(rule) {
     });
 
     if (rule.onIframeCustomEvent) {
-      porthole.addEventListener(function (messageEvent) {
+      rule.porthole.addEventListener(function (messageEvent) {
         var data = messageEvent.data;
         if (data.event == 'fh-ipeer-custom-event') {
           rule.onIframeCustomEvent(data.data);
@@ -90,7 +90,7 @@ function FormHelperPeerRequest(formEl, rule, submitEvent) {
   this.iframeResponse = null;
 
   this.peerSubmitCompleteHandler = $.proxy(this.peerSubmitCompleteHandler, this);
-  porthole.addEventListener(this.peerSubmitCompleteHandler);
+  this.rule.porthole.addEventListener(this.peerSubmitCompleteHandler);
 
   this.initialize(formEl, rule, submitEvent);
 }
@@ -116,7 +116,7 @@ $.extend(FormHelperPeerRequest.prototype, {
     this.disableControls();
 
     // But don't actually submit it yet, just notify the iframe form to do its thing
-    porthole.post({ event: 'fh-ipeer-parent-submit' });
+    this.rule.porthole.post({ event: 'fh-ipeer-parent-submit' });
   },
 
   resumeXHR: function resumeXHR(response) {
@@ -145,7 +145,7 @@ $.extend(FormHelperPeerRequest.prototype, {
       }
     }
 
-    porthole.post({ event: 'fh-ipeer-parent-response-received', status: data.status });
+    this.rule.porthole.post({ event: 'fh-ipeer-parent-response-received', status: data.status });
 
     FormHelperRequest.prototype.xhrSuccess.call(this, data, textStatus, jqXHR);
   },
@@ -169,7 +169,7 @@ $.extend(FormHelperPeerRequest.prototype, {
     switch (data.event) {
       case 'fh-ipeer-child-response-received':
         this.resumeXHR(data.responseData);
-        porthole.removeEventListener(this.peerSubmitCompleteHandler);
+        this.rule.porthole.removeEventListener(this.peerSubmitCompleteHandler);
         break;
     }
   }
