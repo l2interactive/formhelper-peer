@@ -19,6 +19,7 @@ function connect(config = {}) {
   let ready = false;
   let $body = null;
   let $form = null;
+  let rule = null;
 
   function resizeFrame() {
     const bodyHeight = $body.height();
@@ -84,7 +85,7 @@ function connect(config = {}) {
 
     $body = $('body');
 
-    var rule = {
+    rule = {
       form,
       xhrSuccess() {
         formHelperRequest = this;

@@ -200,6 +200,7 @@ function connect$2() {
   var ready = false;
   var $body = null;
   var $form = null;
+  var rule = null;
 
   function resizeFrame() {
     var bodyHeight = $body.height();
@@ -266,7 +267,7 @@ function connect$2() {
 
     $body = $$1('body');
 
-    var rule = {
+    rule = {
       form: form,
       xhrSuccess: function xhrSuccess() {
         formHelperRequest = this;
