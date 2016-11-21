@@ -33,7 +33,7 @@ function connect(rule) {
   rule.porthole = null;
 
   function checkReady() {
-    if (!rule.readyHasBeenAcknowledged) {
+    if (!rule.ready) {
       rule.porthole.post({event: 'fh-ipeer-ready'});
       window.setTimeout(checkReady, 100);
     }
@@ -50,16 +50,12 @@ function connect(rule) {
 
     if (!frameName) { throw new Error('Missing iframe `name` attribute in formhelper-peer-iframe/parent.js'); }
 
-    rule.requestController = FormHelperPeerRequest
-    rule.readyHasBeenAcknowledged = false;
+    rule.requestController = FormHelperPeerRequest;
+    rule.ready = false;
 
     formHelper.addRule(rule);
 
     rule.porthole = new Porthole.WindowProxy(rule.peerProxyUrl, frameName);
-
-    formHelper.portholeSendFHIPeerCustomEvent = function(data) {
-      rule.porthole.post({event: 'fh-ipeer-custom-event', data});
-    };
 
     rule.porthole.addEventListener(function(messageEvent) {
 
@@ -80,26 +76,22 @@ function connect(rule) {
           break;
 
         case 'fh-ipeer-ready-ack':
-          rule.readyHasBeenAcknowledged  = true;
+          rule.ready = true;
           break;
       }
-    });
 
-    if (rule.onIframeCustomEvent) {
-      rule.porthole.addEventListener(
-        function(messageEvent) {
-          const data = messageEvent.data;
-          if (data.event == 'fh-ipeer-custom-event') {
-            rule.onIframeCustomEvent(data.data);
-          }
-        }
-      );
-    }
+      if (rule.peerEvents && rule.peerEvents[data.event]) {
+        rule.peerEvents[data.event](data);
+      }
+
+    });
 
     window.setTimeout(checkReady, 0);
 
   });
-};
+
+  return rule;
+}
 
 
 function FormHelperPeerRequest(formEl, rule, submitEvent) {
